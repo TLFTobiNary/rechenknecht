@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %}Dashboard{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+
+<div class="row">
+	{%for credit in creditList.credits %}
+	  <p>{{credit}}</p>
+
+	{%endfor%}
+</div>
+<form method="POST" action="{{url_for('rechenknecht.addRun')}}">
+	<div class="row">
+		<div class="col">
+			<div class="form-group">
+				<label for="shopid">Where?</label>
+				<select id="shopid" name="shopid">
+					{%for s in shops%}
+					<option value="{{s.id}}">{{s.name}}</option>
+					{%endfor%}
+				</select>
+    			</div>
+  		</div>
+  		<div class="col">
+    			<div class="form-group">
+      				<label for="date">When?</label>
+				<input id="date" name="date" type="date"/>
+    			</div>
+  		</div>
+	</div>
+  	<div class="form-group">
+		<button id="done" type="submit" class="btn-primary">Add new grocery run</button>
+   	</div>
+	
+</form>
+<div class="row">
+	<div class="col">
+		<h3>Runs</h3>
+		<table>
+			<tr><th>Where</th><th>When?</th><th>Paid?</th></tr>
+			{%for r in runs%}
+			<tr><td><a href="{{url_for('rechenknecht.editRun', runid=r['id'])}}">{{r['shopname']}}</a></td><td>{{r['date']}}</td><td><span>{%if r['paid']==True %}Yes{%else%}No <form method="POST" action="{{url_for('rechenknecht.payRun', runid=r['id'])}}"><button class="btn-danger">Paid</button></form>{%endif%}</td></tr>
+			{%endfor%}
+		</table>
+	</div>
+</div>
+
+
+
+{% endblock %}

@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block header %}
+<h1>{% block title %}Item "{{item['description']}}"{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+
+
+<div>
+	<form method="POST" action="{{url_for('rechenknecht.editItem', itemid=item['id'])}}">
+		<label for="name">Description</label>
+		<input id="name" name="name" type="text" value="{{item['description']}}"/>
+		
+		<label for="shop">Shop</label>
+		<select id="shop" name="shop">
+			{%for s in shops%}
+			<option value="{{s['id']}}" {%if s['id'] == item['shopid']%}selected{%endif%}>{{s['name']}}</option>
+			{%endfor%}
+		</select>
+
+		<label for="price">Price</label>
+		<input id="price" name="price" type="number" pattern="[0-9]+([\.,][0-9]+)?" step="0.01" value="{{item['price']/100}}"/>
+
+
+
+
+
+		<input type="submit" value="edit"/>
+	</form>
+
+</div>
+
+
+
+
+{% endblock %}

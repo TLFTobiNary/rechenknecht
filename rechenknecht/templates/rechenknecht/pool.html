@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+
+{% block header %}
+<h1>{% block title %}Pool "{{pool['description']}}"{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+
+
+<div>
+	<form method="POST" action="{{url_for('rechenknecht.editPool', poolid=pool['id'])}}"/>
+	<label for="name">Pool name</label>
+	<input id="name" name="name" type="text" value="{{pool['description']}}">
+	<fieldset>
+		<legend>Members</legend>
+		<div>
+		{%for u in users %}
+		<input type="checkbox" id="{{u['id']}}" name="members" value="{{u['id']}}" {%if u['id'] in members %} checked {%endif%} >
+			<label for="{{u['id']}}">{{u['username']}}</label>
+		{%endfor%}
+		</div>
+	</fieldset>
+	<button class="btn-primary">edit pool</button>
+	</form>
+
+</div>
+
+
+
+
+{% endblock %}

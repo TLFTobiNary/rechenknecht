@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %}Settings{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+
+
+<h4>Add an item</h4>
+<form method="POST" action="{{url_for('rechenknecht.addItem')}}">
+	<div class="form-group">
+	<label for="name">Item Name</label>
+	<input id="name" name="name" type="text"/>
+	</div>
+	<div class="form-group">
+	<label for="shop">Shop</label>
+	<select id="shop" name="shop"> 
+		{%for s in shops%}
+		<option value={{s['id']}}>{{s['name']}}</option>
+		{%endfor%}
+	</select>
+	</div>
+	<div class="form-group">
+	<label for="price">Price</label>
+	<input id="price" name="price" type="number" pattern="[0-9]+([\.,][0-9]+)?" step="0.01"/>
+	</div>
+	<div class="form-group">
+	<button class="btn-primary">Add new Item</button>
+	</div>
+</form>
+
+
+<h4>Add Pool</h4>
+<form method="POST" action="{{url_for('rechenknecht.addPool')}}">
+	<label for="name">Pool name</label>
+	<input id="name" name="name" type="text"/>
+	<fieldset>
+		<legend>Members</legend>
+		<div>
+		{%for u in users %}
+			<input type="checkbox" id="{{u['id']}}" name="members" value="{{u['id']}}" />
+			<label for="{{u['id']}}">{{u['username']}}</label>
+		{%endfor%}
+		</div>
+	</fieldset>
+	<button class="btn-primary">add pool</button>
+</form>
+<h4>Edit Pool</h4>
+<ul>
+{%for p in pools %}
+<li><a href="{{url_for('rechenknecht.editPool', poolid=p['id'])}}">{{p.description}}</a></li>
+{%endfor%}
+</ul>
+
+<h4>Add Shop</h4>
+<form method="POST" action="{{url_for('rechenknecht.addShop')}}">
+	<button class="btn-primary">Add Shop</button>
+</form>
+
+<h4>Edit Shop</h4>
+<ul>
+	{%for s in shops %}
+	<li><a href="{{url_for('rechenknecht.editShop', shopid=s['id'])}}">{{s['name']}}</a></li>
+	{%endfor%}
+</ul>
+
+
+	<h4>Add User</h4>
+	<form method="POST" action="{{url_for('rechenknecht.addUser')}}">
+	<div class="form-group">
+		<label for="name">Name</label>
+		<input id="name" name="name" type="text"/>
+	</div><div class="form-group">
+		<label for="pass">Password</label>
+		<input id="pass" name="pass" type="password"/>
+	</div>
+	<div class="form-group">
+		<label for="admin">
+			<span><input id="admin" type=checkbox name="admin"/>Is admin?</span></label>
+	</div>
+
+	<div class="form-group">
+
+	<input type="submit" value="Add User"/>
+	</div>
+	</form>
+
+	<h4>Set Password</h4>
+	<form method="POST" action="{{url_for('auth.reset',username=g.user['username'])}}">
+		<label for="oldpass">old pass</label>
+		<input id="oldpass" name="oldpass" type="password"/>
+		<label for="newpass">new pass</label>
+		<input id="newpass" name="newpass" type="password"/>
+		<button class="btn-danger">Set new password</button>
+	</form>
+
+
+<div>
+<h4>Edit an item</h4>
+	<table>
+		<tr>
+			<th>Item</th><th>Shop</th><th>Price</th><th>Actions</th>
+		</tr>
+		{% for x in items %}
+				<tr>
+				<td>{{x['description']}}</td>
+				<td>{{x['name']}}</td>
+				<td>{{x['price']/100}}€</td>
+				<td><form method="GET" action="{{url_for('rechenknecht.editItem', itemid=x['id'])}}"><button class="btn-secondary">edit</button></form></td>
+				<td><form method="POST" action="{{url_for('rechenknecht.deleteItem', itemid=x['id'])}}"><button class="btn-danger">delete</button></form>
+				</tr>
+
+		{%endfor%}
+	</table>
+</div>
+
+{% endblock %}

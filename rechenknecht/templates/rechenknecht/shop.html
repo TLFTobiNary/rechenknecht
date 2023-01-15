@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% block header %}
+<h1>{% block title %}Edit shop{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+
+
+<div>
+	<form method="POST" action="{{url_for('rechenknecht.editShop', shopid=shop['id'])}}"/>
+	<label for="name">Shop name</label>
+	<input id="name" name="name" type="text" value="{{shop['name']}}">
+	<button class="btn-primary">Edit shop</button>
+	</form>
+
+</div>
+
+
+
+
+{% endblock %}

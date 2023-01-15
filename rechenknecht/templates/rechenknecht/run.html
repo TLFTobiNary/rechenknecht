@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+
+{% block header %}
+<h1>{% block title %}Edit run{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+
+<div>
+	<p>This run has created the following debts:</p>
+	
+	{%for credit in creditList.credits %}
+	  <p>{{credit}}</p>
+
+	{%endfor%}
+</div>
+	
+<form method="POST" action="{{url_for('rechenknecht.editRun', runid=run['id'])}}">
+	<div class="form-group">
+		<label for="qty">quantity</label>
+		<select id="qty" name="qty">
+			<option value="1">1</option>
+			<option value="2">2</option>
+			<option value="3">3</option>
+			<option value="4">4</option>
+			<option value="5">5</option>
+			<option value="6">6</option>
+			<option value="7">7</option>
+			<option value="8">8</option>
+			<option value="9">9</option>
+			<option value="10">10</option>
+		</select>
+		<label for="item">new purchase</label>
+		<select id="item" name="item">
+			{% for x in items %}
+				<option value="{{x['id']}}">{{x['description']}} @ {{x['price']/100}}€</option>
+			{%endfor%}
+		</select>
+		<label for="pool">bought for</label>
+		<select id="pool" name="pool">
+			{%for p in pools%}
+				<option value="{{p['id']}}">{{p['description']}}</option>
+			{%endfor%}
+		</select>
+	</div>
+		<button class="paper-btn btn-primary">add purchase</button>
+		<button class="btn-secondary" name="modify" value="modify item">modify item</button>
+	</form>
+
+<div>
+	<table>
+		<tr>
+			<th>Item</th>
+			<th>Price</th>
+			<th>For</th>
+			<th>Action</th>
+		</tr>
+		{%for p in purchases%}
+		<tr>
+			<td>{{p['itemName']}}</td>
+			<td>{{p['price']/100}}€</td>
+			<td>{{p['poolName']}}</td>
+			<td><form method="POST" action="{{url_for('rechenknecht.deletePurchase', purchaseid=p['id'])}}"><button class="btn-danger">delete</button></form></td>
+		</tr>
+		{%endfor%}
+	</table>
+</div>
+
+
+
+{% endblock %}

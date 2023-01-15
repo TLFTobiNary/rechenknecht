@@ -1,0 +1,65 @@
+<!doctype html>
+<html{% if g.user['darkmode'] %} class="dark"{%endif%}>
+        <head>
+		<title>Rechenknecht - {% block title %}{% endblock %}</title>
+		<link rel="stylesheet" href="{{ url_for('static', filename='paper.min.css') }}">
+        </head>
+	<body{% if g.user['darkmode'] %} style="background-color: #41403e"{%endif%}>
+                <div id="top" class="row site">
+			<div class="col col-fill">
+				<nav class="border fixed split-nav">
+					<div class="nav-brand">
+						<h3><a href="{{ url_for('index') }}">Dashboard</a></h3>
+					</div>
+					{%if g.user %}
+					<div class="collapsible">
+						<input id="collapsible1" type="checkbox" name="collapsible1"/>
+						<label for="collapsible1">
+							<div class="bar1"></div>
+							<div class="bar2"></div>
+							<div class="bar3"></div>
+						</label>
+						<div class="collapsible-body">
+							<ul class="inline">
+								<li><a href="{{ url_for('rechenknecht.settings')}}">Settings</a></li>
+								<li><a href="{{ url_for('auth.logout') }}">Logout</a></li>
+							</ul>
+						</div>
+					</div>
+					{%endif%}
+				</nav>
+				{% for cat, message in get_flashed_messages(with_categories=True) %}
+				<div class="row flex-center">
+					<div class="text-center">
+						<div class="alert alert-{{cat}}">{{ message }}</div>
+					</div>
+				</div>
+				{% endfor %}
+			       <div class="row flex-center">
+					<div class="text-center">
+						{% block header %}{% endblock %}
+					</div>
+			       </div>
+
+				<div class="row">
+					<div class="col col-2"></div>
+
+					<div class="col col-fill">
+						<div class="paper">
+							{% block content %}{% endblock %}
+						</div>
+					</div>
+					<div class="col col-2"></div>
+				</div>
+				<div class="row">
+					<div class="col col-fill">
+						<form action="{{url_for("rechenknecht.toggleMode")}}" method="POST">
+							<button class="btn-primary">{%if g.user['darkmode']%}Go light{%else%}Go dark{%endif%}</button>
+						</form>
+					</div>
+				</div>
+			</div>
+                </div>
+        </body>
+</html>
+
