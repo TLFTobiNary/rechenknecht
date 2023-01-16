@@ -28,6 +28,12 @@
 					</div>
 					{%endif%}
 				</nav>
+			       <div class="row flex-center">
+					<div class="text-center">
+						{% block header %}{% endblock %}
+					</div>
+			       </div>
+
 				{% for cat, message in get_flashed_messages(with_categories=True) %}
 				<div class="row flex-center">
 					<div class="text-center">
@@ -35,12 +41,6 @@
 					</div>
 				</div>
 				{% endfor %}
-			       <div class="row flex-center">
-					<div class="text-center">
-						{% block header %}{% endblock %}
-					</div>
-			       </div>
-
 				<div class="row">
 					<div class="col col-2"></div>
 
@@ -50,13 +50,6 @@
 						</div>
 					</div>
 					<div class="col col-2"></div>
-				</div>
-				<div class="row">
-					<div class="col col-fill">
-						<form action="{{url_for("rechenknecht.toggleMode")}}" method="POST">
-							<button class="btn-primary">{%if g.user['darkmode']%}Go light{%else%}Go dark{%endif%}</button>
-						</form>
-					</div>
 				</div>
 			</div>
                 </div>

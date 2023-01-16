@@ -41,7 +41,7 @@ CREATE TABLE IF NOT EXISTS "users" (
 	"id" INTEGER PRIMARY KEY AUTOINCREMENT,
 	"username" TEXT UNIQUE NOT NULL,
 	"password" TEXT NOT NULL,
-	"priviliges" INTEGER DEFAULT 0,
+	"privileges" INTEGER DEFAULT 0,
 	"disabled" BOOL DEFAULT False,
 	"darkmode" BOOL Default False
 	);

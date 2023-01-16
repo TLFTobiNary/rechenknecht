@@ -4,7 +4,7 @@ from flask import (
 from werkzeug.exceptions import abort
 from werkzeug.security import generate_password_hash
 from sqlite3 import IntegrityError
-from auth import login_required
+from auth import login_required, admin_required
 from db import get_db
 
 from os import mkdir, listdir
@@ -168,12 +168,11 @@ def addRun():
     return redirect(url_for("rechenknecht.editRun", runid=newRun))
 
 @bp.route('/run/<int:runid>/paid', methods=("POST",))
-@login_required
+@admin_required
 def payRun(runid):
-    if g.user['priviliges']:
-        db = get_db()
-        run = db.execute("update runs set paid=True where id = ?", (runid,))
-        db.commit()
+    db = get_db()
+    run = db.execute("update runs set paid=True where id = ?", (runid,))
+    db.commit()
     return redirect(url_for("index"))
 
 
@@ -193,7 +192,6 @@ def editRun(runid):
         (userDict, poolDict) = generateModels(users, poolsusers, runspurchases, pools)
         
 
-        # todo: actually do stuff here.
         poolBalances = []
         creditList = CreditList()
         for p in poolDict.values():
@@ -232,11 +230,9 @@ def deletePurchase(purchaseid):
 @login_required
 def addItem():
     #add an item
-    if g.user['priviliges']:
-
-        db = get_db()
-        db.execute("insert into items (description, shopid, price) values(?,?,?)", (request.form.get("name"), request.form.get("shop"), int(Decimal(request.form.get("price"))*100)))
-        db.commit()
+    db = get_db()
+    db.execute("insert into items (description, shopid, price) values(?,?,?)", (request.form.get("name"), request.form.get("shop"), int(Decimal(request.form.get("price"))*100)))
+    db.commit()
     return redirect(url_for("rechenknecht.settings"))
 
 @bp.route("/item/<int:itemid>", methods=("GET", "POST"))
@@ -260,14 +256,12 @@ def editItem(itemid):
         return redirect(url_for('rechenknecht.editItem', itemid=itemid))
 
 @bp.route("/item/<int:itemid>/del", methods=("POST",))
-@login_required
+@admin_required
 def deleteItem(itemid):
-    if g.user['priviliges']:
-        db = get_db()
-        db.execute("delete from items where id=?",(itemid,))
-        db.commit()
+    db = get_db()
+    db.execute("delete from items where id=?",(itemid,))
+    db.commit()
     return redirect(url_for('rechenknecht.settings'))
-
 
 
 @bp.route("/settings")
@@ -275,74 +269,70 @@ def deleteItem(itemid):
 def settings():
     db = get_db()
     pools = db.execute("select * from pools").fetchall()
-    users = db.execute("select id, username, priviliges from users").fetchall()
+    users = db.execute("select id, username, privileges from users").fetchall()
     items = db.execute("select * from items inner join shops on items.shopid=shops.id order by description ASC").fetchall()
     shops = db.execute("select * from shops").fetchall()
     return render_template('rechenknecht/settings.html', pools=pools, users=users, items=items, shops=shops)
 
 @bp.route("/user/add", methods=("POST",))
-@login_required
+@admin_required
 def addUser():
-    if g.user['priviliges']:
-        db = get_db()
-        name = request.form.get("name")
-        password = generate_password_hash(request.form.get("pass"))
-        priviliges = request.form.get("priviliges")
-        newUser = db.execute("insert into users ('username', 'password', 'priviliges') values (?, ?, ?)", (name, password, priviliges))
-        db.commit()
-        newUserId = newUser.lastrowid
+    db = get_db()
+    name = request.form.get("name")
+    password = generate_password_hash(request.form.get("pass"))
+    privileges = 0
+    if request.form.get("privileges"):
+        priviliges = 1
+    newUser = db.execute("insert into users ('username', 'password', 'privileges') values (?, ?, ?)", (name, password, privileges))
+    db.commit()
+    newUserId = newUser.lastrowid
 
-        
-        newPool = db.execute("insert into pools ('description') values (?)", (name,))
-        db.commit()
-        newPoolId = newPool.lastrowid
+    
+    newPool = db.execute("insert into pools ('description') values (?)", (name,))
+    db.commit()
+    newPoolId = newPool.lastrowid
 
-        db.execute("insert into poolsusers ('user', 'pool') values (?, ?)", (newUserId, newPoolId))
-        db.commit()
+    db.execute("insert into poolsusers ('user', 'pool') values (?, ?)", (newUserId, newPoolId))
+    db.commit()
     return redirect(url_for('rechenknecht.settings'))
 
 @bp.route("/pool/<int:poolid>", methods=("POST", "GET"))
-@login_required
+@admin_required
 def editPool(poolid):
-    if g.user['priviliges']:
-        if request.method == "GET":
-            db = get_db()
-            pool = db.execute("select * from pools where id = ?", (poolid,)).fetchone()
-            users = db.execute("select * from users").fetchall()
-            poolsusers = db.execute("select * from poolsusers where pool=?", (poolid,)).fetchall()
-            mem = []
-            for x in poolsusers:
-                mem.append(x['user'])
+    if request.method == "GET":
+        db = get_db()
+        pool = db.execute("select * from pools where id = ?", (poolid,)).fetchone()
+        users = db.execute("select * from users").fetchall()
+        poolsusers = db.execute("select * from poolsusers where pool=?", (poolid,)).fetchall()
+        mem = []
+        for x in poolsusers:
+            mem.append(x['user'])
 
-            return render_template("rechenknecht/pool.html", pool=pool, users=users, members=mem)
-        else:
-            db = get_db()
-            desc = request.form.get("name")
-            mem = request.form.getlist("members")
-            db.execute("update pools set description=? where id = ?", (desc, poolid))
-            db.execute("delete from poolsusers where pool = ?", (poolid,))
-            for x in mem:
-                db.execute("insert into poolsusers ('user', 'pool') values (?, ?)", (x, poolid))
-            db.commit()
-            return redirect(url_for('rechenknecht.editPool', poolid=poolid))
+        return render_template("rechenknecht/pool.html", pool=pool, users=users, members=mem)
     else:
-        return abort(403)
-	
-
-@bp.route("/pool/add", methods=("POST",))
-@login_required
-def addPool():
-    if g.user['priviliges']:
         db = get_db()
         desc = request.form.get("name")
         mem = request.form.getlist("members")
-        newPool = db.execute("insert into pools ('description') values (?)", (desc,))
-        db.commit()
-        newPoolId = newPool.lastrowid
-
+        db.execute("update pools set description=? where id = ?", (desc, poolid))
+        db.execute("delete from poolsusers where pool = ?", (poolid,))
         for x in mem:
-            db.execute("insert into poolsusers ('user', 'pool') values (?, ?)", (x, newPoolId))
+            db.execute("insert into poolsusers ('user', 'pool') values (?, ?)", (x, poolid))
         db.commit()
+        return redirect(url_for('rechenknecht.editPool', poolid=poolid))
+
+@bp.route("/pool/add", methods=("POST",))
+@admin_required
+def addPool():
+    db = get_db()
+    desc = request.form.get("name")
+    mem = request.form.getlist("members")
+    newPool = db.execute("insert into pools ('description') values (?)", (desc,))
+    db.commit()
+    newPoolId = newPool.lastrowid
+
+    for x in mem:
+        db.execute("insert into poolsusers ('user', 'pool') values (?, ?)", (x, newPoolId))
+    db.commit()
 
     return redirect(url_for("index"))
 
@@ -350,36 +340,30 @@ def addPool():
 @bp.route("/shop/add", methods=("POST",))
 @login_required
 def addShop():
-    if g.user['priviliges']:
-        db = get_db()
-        try:
-            cursor = db.execute("insert into shops ('name') values (?)", ("New Shop",))
-            db.commit()
-            newShopId = cursor.lastrowid
-            return redirect(url_for("rechenknecht.editShop", shopid=newShopId))
-        except IntegrityError:
-            flash("You need to edit the shop with this name first")
-            return redirect(url_for("rechenknecht.settings"))
-    else:
-        return abort(403)
+    db = get_db()
+    try:
+        cursor = db.execute("insert into shops ('name') values (?)", ("New Shop",))
+        db.commit()
+        newShopId = cursor.lastrowid
+        return redirect(url_for("rechenknecht.editShop", shopid=newShopId))
+    except IntegrityError:
+        flash("You need to edit the shop with this name first")
+        return redirect(url_for("rechenknecht.settings"))
 
 @bp.route("/shop/<int:shopid>", methods=("POST", "GET"))
 @login_required
 def editShop(shopid):
-    if g.user['priviliges']:
-        if request.method == "GET":
-            db = get_db()
-            shop = db.execute("select * from shops where id = ?", (shopid,)).fetchone()
-            return render_template("rechenknecht/shop.html", shop=shop)
-        else:
-            # get the form data and edit the shop, i guess?
-            db = get_db()
-            name = request.form.get("name")
-            db.execute("update shops set name=? where id = ?", (name, shopid))
-            db.commit()
-            return redirect(url_for("rechenknecht.editShop", shopid=shopid))
+    if request.method == "GET":
+        db = get_db()
+        shop = db.execute("select * from shops where id = ?", (shopid,)).fetchone()
+        return render_template("rechenknecht/shop.html", shop=shop)
     else:
-        return abort(403)
+        # get the form data and edit the shop, i guess?
+        db = get_db()
+        name = request.form.get("name")
+        db.execute("update shops set name=? where id = ?", (name, shopid))
+        db.commit()
+        return redirect(url_for("rechenknecht.editShop", shopid=shopid))
 
 
 @bp.route("/mode", methods=("POST",))
@@ -389,4 +373,4 @@ def toggleMode():
     newVal = not g.user['darkmode']
     db.execute("update users set darkmode = ? where id = ?", (newVal, g.user['id']))
     db.commit()
-    return redirect(url_for("index"))
+    return redirect(url_for("rechenknecht.settings"))
