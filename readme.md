@@ -8,13 +8,11 @@ The idea is to create pools of people and people can add expenses to the pool. R
 - No internationalization.
 - Shops can't be deleted (should be easy, tho.)
 - Pools can't be deleted (should be non-trivial; debts may be pending.)
-- settings show all available settings, regardless of the privs.
-- privs are wonky.
 - statistics are not available.
 - optional switch from sqlite to postgres would be nice.
 
 
-# quick start
+# Quick Start
 On an `apt`-distro, run:
 ```
 sudo apt install python3-flask uwsgi uwsgi-plugin-python3
