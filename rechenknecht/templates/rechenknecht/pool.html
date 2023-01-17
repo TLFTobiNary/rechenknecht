@@ -21,6 +21,11 @@
 		</div>
 	</fieldset>
 	<button class="btn-primary">edit pool</button>
+	{%if pool.disabled%}
+	<button class="btn-secondary" name="enable" value="enable">activate pool</button>
+	{%else%}
+	<button class="btn-danger" name="deactivate" value="deactivate">deactivate pool</button>
+	{%endif%}
 	</form>
 
 </div>

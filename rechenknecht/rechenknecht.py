@@ -108,7 +108,12 @@ class Purchase:
         return str(self.user) + " bought " + self.description + " for " + str(self.price)
 
 
-def generateModels(users, poolsusers, runspurchases, pools):
+def generateModels():
+    db = get_db()
+    pools = db.execute("select * from pools").fetchall()
+    users = db.execute("select id, username from users").fetchall()
+    poolsusers = db.execute("select * from poolsusers").fetchall()
+    runspurchases = db.execute("select items.description as description, purchases.price as price, purchases.userid as userid, purchases.poolid as poolid from runs inner join purchases on runs.id = purchases.runid inner join items on items.id = purchases.itemid where runs.paid=False").fetchall()
     userDict = {}
     poolDict = {}
     for u in users:
@@ -126,32 +131,31 @@ def generateModels(users, poolsusers, runspurchases, pools):
 
     return(userDict, poolDict)
 
+def calculate_credit_list():
+    (userDict, poolDict) = generateModels()
+    poolBalances = []
+    creditList = CreditList()
+    for p in poolDict.values():
+        balances = p.calculateBalances(creditList)
+        poolBalances.append((p.description, balances.items()))
+    return creditList
+
+
 
 @bp.route('/')
 @login_required
 def index():
     db = get_db()
 
-    items = db.execute("select * from items").fetchall()
-    pools = db.execute("select * from pools").fetchall()
-    users = db.execute("select id, username from users").fetchall()
-    poolsusers = db.execute("select * from poolsusers").fetchall()
-    runspurchases = db.execute("select items.description as description, purchases.price as price, purchases.userid as userid, purchases.poolid as poolid from runs inner join purchases on runs.id = purchases.runid inner join items on items.id = purchases.itemid where runs.paid=False").fetchall()
     runs = db.execute("select runs.id as id, runs.date as date, runs.paid as paid, shops.name as shopname from runs inner join shops on runs.shopid = shops.id order by date DESC").fetchall()
     shops = db.execute("select * from shops order by name ASC").fetchall()
     
-    (userDict, poolDict) = generateModels(users, poolsusers, runspurchases, pools)
     
-
-    poolBalances = []
-    creditList = CreditList()
-    for p in poolDict.values():
-        balances = p.calculateBalances(creditList)
-        poolBalances.append((p.description, balances.items()))
+    creditList = calculate_credit_list()
 
     
 
-    return render_template('rechenknecht/dashboard.html', items=items, poolBalances=poolBalances, pools=pools, runs=runs, creditList = creditList, shops=shops)
+    return render_template('rechenknecht/dashboard.html', runs=runs, creditList = creditList, shops=shops)
 
 @bp.route('/run/add', methods=("POST",))
 @login_required
@@ -184,19 +188,9 @@ def editRun(runid):
         purchases = db.execute("select purchases.id as id, purchases.price as price, items.description as itemName, pools.description as poolName from purchases inner join items on purchases.itemid = items.id inner join pools on purchases.poolid = pools.id where runid = ?", (runid,)).fetchall()
         run = db.execute("select * from runs where id = ?", (runid,)).fetchone()
         items = db.execute("select * from items where shopid = ? ORDER BY price ASC", (run['shopid'],)).fetchall()
-        pools = db.execute("select * from pools").fetchall()
-        users = db.execute("select id, username from users").fetchall()
-        poolsusers = db.execute("select * from poolsusers").fetchall()
-        runspurchases = db.execute("select items.description as description, purchases.price as price, purchases.userid as userid, purchases.poolid as poolid from runs inner join purchases on runs.id = purchases.runid inner join items on items.id = purchases.itemid where runs.id=?", (runid,)).fetchall()
+        pools = db.execute("select * from pools where disabled = ?",  (False,)).fetchall()
         
-        (userDict, poolDict) = generateModels(users, poolsusers, runspurchases, pools)
-        
-
-        poolBalances = []
-        creditList = CreditList()
-        for p in poolDict.values():
-            balances = p.calculateBalances(creditList)
-            poolBalances.append((p.description, balances.items()))
+        creditList = calculate_credit_list()
 
         return render_template('rechenknecht/run.html', purchases=purchases, items=items, pools=pools, run=run, creditList = creditList)
 
@@ -223,6 +217,8 @@ def deletePurchase(purchaseid):
     if g.user['id'] == p['userid']:
         db.execute("delete from purchases where id = ?", (purchaseid,))
         db.commit()
+    else:
+        flash("Only the user that bought this can remove this.")
     return redirect(url_for("rechenknecht.editRun", runid=p['runid']))
 
 
@@ -245,24 +241,26 @@ def editItem(itemid):
         shops = db.execute("select * from shops").fetchall()
         return render_template('rechenknecht/item.html', item=item, shops=shops)
     else:
-        desc = request.form.get("name")
-        shop = request.form.get("shop")
-        price = int(Decimal(request.form.get("price"))*100)
-        db.execute("update items set description=?, shopid=?, price=? where id=?", (desc,shop,price,itemid))
-        db.commit()
+        if request.form.get("delete"):
+            db.execute("delete from items where id=?", (itemid,))
+            db.commit()
+            flash("Item has been deleted.")
+            if "oldrunid" in session:
+                x = session.pop("oldrunid", None)
+                return redirect(url_for('rechenknecht.editRun', runid=x))
+            else:
+                return redirect(url_for('rechenknecht.settings'))
+                
+        else:
+            desc = request.form.get("name")
+            shop = request.form.get("shop")
+            price = int(Decimal(request.form.get("price"))*100)
+            db.execute("update items set description=?, shopid=?, price=? where id=?", (desc,shop,price,itemid))
+            db.commit()
         if "oldrunid" in session:
             x = session.pop("oldrunid", None)
             return redirect(url_for('rechenknecht.editRun', runid=x))
         return redirect(url_for('rechenknecht.editItem', itemid=itemid))
-
-@bp.route("/item/<int:itemid>/del", methods=("POST",))
-@admin_required
-def deleteItem(itemid):
-    db = get_db()
-    db.execute("delete from items where id=?",(itemid,))
-    db.commit()
-    return redirect(url_for('rechenknecht.settings'))
-
 
 @bp.route("/settings")
 @login_required
@@ -296,6 +294,37 @@ def addUser():
     db.commit()
     return redirect(url_for('rechenknecht.settings'))
 
+@bp.route("/user/<int:userid>", methods=("GET", "POST"))
+@admin_required
+def editUser(userid):
+    db = get_db()
+    if request.method == "GET":
+        user = db.execute("select * from users where id = ?", (userid,)).fetchone()
+        return render_template("rechenknecht/user.html", user=user)
+    else:
+        darkmode = False
+        if request.form.get("darkmode"):
+            darkmode = True
+        disabled = False
+        if request.form.get("disabled"):
+            disabled = True
+
+
+
+        if disabled:
+            # should this be okay?
+            cl = calculate_credit_list()
+            for c in cl.credits:
+                if c.creditor.userid == userid or c.debitor.userid == userid:
+                    flash("This user has open balances. These must be settled first.")
+                    return redirect(url_for("rechenknecht.editUser", userid=userid))
+        if len(request.form.get("password")) > 0:
+            db.execute("update users set password=? where id=?",  (generate_password_hash(request.form.get("password")),))
+        db.execute("update users set username = ?, privileges = ?, disabled = ?, darkmode = ? where id = ?", (request.form.get("username"), request.form.get("privileges"), disabled, darkmode, userid))
+        db.commit()
+        return redirect(url_for("rechenknecht.editUser", userid=userid))
+
+
 @bp.route("/pool/<int:poolid>", methods=("POST", "GET"))
 @admin_required
 def editPool(poolid):
@@ -311,12 +340,39 @@ def editPool(poolid):
         return render_template("rechenknecht/pool.html", pool=pool, users=users, members=mem)
     else:
         db = get_db()
+        if request.form.get("enable"):
+            db.execute("update pools set disabled=? where id=?", (False, poolid))
+            db.commit()
+            flash("pool has been enabled.")
+            return redirect(url_for("rechenknecht.editPool", poolid=poolid))
+        openRun = db.execute("select * from runs inner join purchases on runs.id = purchases.runid where runs.paid = ? and purchases.poolid = ?", (False, poolid)).fetchone()
+        if request.form.get("deactivate"):
+            if openRun:
+                flash("This pool has open balanches and cannot be disabled.")
+                return redirect(url_for("rechenknecht.editPool", poolid=poolid))
+            else:
+                db.execute("update pools set disabled=? where id=?", (True, poolid))
+                db.commit()
+                flash("pool has been disabled.")
+                return redirect(url_for("rechenknecht.editPool", poolid=poolid))
+
         desc = request.form.get("name")
         mem = request.form.getlist("members")
         db.execute("update pools set description=? where id = ?", (desc, poolid))
+
+        # has this pool open balances?
+        if openRun:
+            db.commit()
+            flash("This pool has unpaid balances and members cannot be modified.")
+            return redirect(url_for("rechenknecht.editPool", poolid=poolid))
+
         db.execute("delete from poolsusers where pool = ?", (poolid,))
         for x in mem:
-            db.execute("insert into poolsusers ('user', 'pool') values (?, ?)", (x, poolid))
+            activeUser = db.execute("select * from users where id=? and disabled=?",(x, False)).fetchone()
+            if activeUser:
+                db.execute("insert into poolsusers ('user', 'pool') values (?, ?)", (x, poolid))
+            else:
+                flash("You asked me to add a deactivated user to a pool. Not gonna happen.")
         db.commit()
         return redirect(url_for('rechenknecht.editPool', poolid=poolid))
 

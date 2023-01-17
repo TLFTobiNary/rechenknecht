@@ -7,7 +7,6 @@ The idea is to create pools of people and people can add expenses to the pool. R
 - under special circumstances, debts might be off by a few cents.
 - No internationalization.
 - Shops can't be deleted (should be easy, tho.)
-- Pools can't be deleted (should be non-trivial; debts may be pending.)
 - statistics are not available.
 - optional switch from sqlite to postgres would be nice.
 

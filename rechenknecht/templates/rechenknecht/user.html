@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block header %}
+<h1>{% block title %}Edit User{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+
+
+<div>
+	<form method="POST" action="{{url_for('rechenknecht.editUser', userid=user['id'])}}"/>
+	<label for="username">Username</label>
+	<input id="username" name="username" type="text" value="{{user['username']}}"/>
+
+	<label for="password">Password</label>
+	<input id="password" name="password" type="password" optional/>
+	
+	<label for="privileges">Privileges</label>
+	<input id="privileges" name="privileges" type="number" pattern="[01]" step="1" value="{{user['privileges']}}"/>
+
+	<label for="darkmode">Dark Mode</label>
+	<input id="darkmode" name="darkmode" type="checkbox" {%if user['darkmode']%}checked{%endif%}/>
+
+	<label for="disabled">Disabled</label>
+	<input id="disabled" name="disabled" type="checkbox" {%if user['disabled']%}checked{%endif%}/>
+
+
+
+
+	<button class="btn-danger">Edit user</button>
+	</form>
+
+</div>
+
+
+
+{% endblock %}

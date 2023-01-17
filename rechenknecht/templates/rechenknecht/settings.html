@@ -71,12 +71,21 @@
 	<button class="btn-primary">add pool</button>
 </form>
 <h4>Edit Pool</h4>
-<ul>
+<p>active pools</p><ul>
 {%for p in pools %}
+{%if not p['disabled'] %}
 <li><a href="{{url_for('rechenknecht.editPool', poolid=p['id'])}}">{{p.description}}</a></li>
+{%endif%}
 {%endfor%}
 </ul>
 
+<p>inactive pools</p><ul>
+{%for p in pools %}
+{%if p['disabled'] %}
+<li><a href="{{url_for('rechenknecht.editPool', poolid=p['id'])}}">{{p.description}}</a></li>
+{%endif%}
+{%endfor%}
+</ul>
 
 
 	<h4>Add User</h4>
@@ -95,10 +104,28 @@
 
 	<div class="form-group">
 
-	<input type="submit" value="Add User"/>
+		<button class="btn-primary">add user</button>
 	</div>
 	</form>
 
+<h4>Edit user</h4>
+<p>active users</p>
+<ul>
+{%for u in users%}
+{%if not u['disabled'] %}
+	<li><a href="{{url_for('rechenknecht.editUser', userid=u['id'])}}">{{u['username']}}</a></li>
+	{%endif%}
+{%endfor%}
+</ul>
+
+<p>inactive users</p>
+<ul>
+{%for u in users%}
+{%if u['disabled'] %}
+	<li><a href="{{url_for('rechenknecht.editUser', userid=u['id'])}}">{{u['username']}}</a></li>
+	{%endif%}
+{%endfor%}
+</ul>
 	{%endif%}
 
 <div>
@@ -113,8 +140,7 @@
 				<td>{{x['description']}}</td>
 				<td>{{x['name']}}</td>
 				<td>{{x['price']/100}}€</td>
-				<td><form method="GET" action="{{url_for('rechenknecht.editItem', itemid=x['id'])}}"><button class="btn-secondary">edit</button></form></td>
-				<td><form method="POST" action="{{url_for('rechenknecht.deleteItem', itemid=x['id'])}}"><button class="btn-danger">delete</button></form>
+				<td><a href="{{url_for('rechenknecht.editItem', itemid=x['id'])}}"><button class="btn-secondary">edit</button></a></td>
 				</tr>
 
 		{%endfor%}

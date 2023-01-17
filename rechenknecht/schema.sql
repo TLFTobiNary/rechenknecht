@@ -48,7 +48,8 @@ CREATE TABLE IF NOT EXISTS "users" (
 drop TABLE IF EXISTS "pools";
 create table if not exists "pools" (
 	"id" integer primary key autoincrement,
-	"description" TEXT NOT NULL
+	"description" TEXT NOT NULL,
+	"disabled" BOOL default False
 	);
 
 DROP TABLE IF EXISTS "poolsusers";
@@ -65,7 +66,7 @@ insert into "users" values (0, "admin", "pbkdf2:sha256:150000$dgMqt2Ib$5222f22c1
 
 insert into "shops" values (0, "Demo Shop");
 
-insert into "pools" values(0, "admin");
+insert into "pools" values(0, "admin", False);
 insert into "poolsusers" values(0, 0, 0);
 
 

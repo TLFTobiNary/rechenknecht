@@ -14,7 +14,7 @@ def login_required(view):
     @functools.wraps(view)
     def wrapped_view(**kwargs):
         if g.user is None:
-            flash('You need to be logged in to do that.', 'primary')
+            flash('You need to log in.', 'primary')
             return redirect(url_for('auth.login'))
         return view(**kwargs)
 
@@ -28,7 +28,7 @@ def admin_required(view):
         elif g.user['privileges'] > 0:
             return view(**kwargs)
         else:
-            flash('You need an admin to do that', 'danger')
+            flash('You need an admin to do that.', 'danger')
             return abort(403)
     return wrapped_view
 
@@ -57,7 +57,7 @@ def login():
         db = get_db()
         error = None
         user = db.execute(
-                "select password, id from users where username = ?", (username,)
+                "select password, id from users where username = ? and disabled = ?", (username,False)
                 ).fetchone()
         if user is None:
             error = "Login failed."
