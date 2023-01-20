@@ -12,6 +12,7 @@
 
 	{%endfor%}
 </div>
+<div class="paper">
 <form method="POST" action="{{url_for('rechenknecht.addRun')}}">
 	<div class="row">
 		<div class="col">
@@ -32,19 +33,27 @@
   		</div>
 	</div>
   	<div class="form-group">
-		<button id="done" type="submit" class="btn-primary">Add new grocery run</button>
+		<button id="done" type="submit" class="btn-secondary">Add new grocery run</button>
    	</div>
 	
 </form>
+</div>
 <div class="row">
 	<div class="col">
 		<h3>Runs</h3>
+		<form action="{{url_for('rechenknecht.markPaid')}}" method="POST">
+		<button class="btn-warning">mark selected paid</button>
 		<table>
 			<tr><th>Where</th><th>When?</th><th>Paid?</th></tr>
 			{%for r in runs%}
-			<tr><td><a href="{{url_for('rechenknecht.editRun', runid=r['id'])}}">{{r['shopname']}}</a></td><td>{{r['date']}}</td><td><span>{%if r['paid']==True %}Yes{%else%}No <form method="POST" action="{{url_for('rechenknecht.payRun', runid=r['id'])}}"><button class="btn-danger">Paid</button></form>{%endif%}</td></tr>
+			<tr><td><a href="{{url_for('rechenknecht.editRun', runid=r['id'])}}">{{r['shopname']}}</a></td>
+			<td>{{r['date']}}</td>
+			<td>{%if r['paid']==True %}<fieldset class="form-group"><label class="paper-switch-2"><input type="checkbox" checked disabled><span class="paper-switch-slider round"></span></label></fieldset>{%else%}
+				<fieldset class="form-group"><label class="paper-switch-2"><input type="checkbox" name="runs[]" value="{{r['id']}}"/><span class="paper-switch-slider round"></span></label></fieldset>
+				{%endif%}</td></tr>
 			{%endfor%}
 		</table>
+		</form>
 	</div>
 </div>
 

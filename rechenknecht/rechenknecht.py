@@ -147,7 +147,7 @@ def calculate_credit_list():
 def index():
     db = get_db()
 
-    runs = db.execute("select runs.id as id, runs.date as date, runs.paid as paid, shops.name as shopname from runs inner join shops on runs.shopid = shops.id order by date DESC").fetchall()
+    runs = db.execute("select runs.id as id, runs.date as date, runs.paid as paid, shops.name as shopname from runs inner join shops on runs.shopid = shops.id order by paid, date DESC").fetchall()
     shops = db.execute("select * from shops order by name ASC").fetchall()
     
     
@@ -171,11 +171,19 @@ def addRun():
 
     return redirect(url_for("rechenknecht.editRun", runid=newRun))
 
-@bp.route('/run/<int:runid>/paid', methods=("POST",))
+
+@bp.route('/canihazrunpayment', methods=("POST",))
 @admin_required
-def payRun(runid):
+def markPaid():
     db = get_db()
-    run = db.execute("update runs set paid=True where id = ?", (runid,))
+    runs = request.form.getlist("runs[]")
+    for run in runs:
+        try:
+            int(run)
+            db.execute("update runs set paid=True where id = ?", (run,))
+        except:
+            flash("that wasn't a real run.")
+            redirect(url_for("index"))
     db.commit()
     return redirect(url_for("index"))
 
