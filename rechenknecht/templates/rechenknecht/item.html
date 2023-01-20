@@ -1,33 +1,36 @@
 {% extends 'base.html' %}
 
 {% block header %}
-<h1>{% block title %}Item "{{item['description']}}"{% endblock %}</h1>
+<h1>{% block title %}{%if not item['new']%}Item "{{item['description']}}"{%else%}New Item{%endif%}{% endblock %}</h1>
 {% endblock %}
 
 {% block content %}
 
 
 <div>
-	<form method="POST" action="{{url_for('rechenknecht.editItem', itemid=item['id'])}}">
+	<form method="POST" action="{%if not item['new']%}{{url_for('rechenknecht.editItem', itemid=item['id'])}}{%else%}{{url_for('rechenknecht.editItem')}}{%endif%}">
 		<label for="name">Description</label>
-		<input id="name" name="name" type="text" value="{{item['description']}}"/>
+		<input id="name" name="name" type="text" value="{%if not item['new']%}{{item['description']}}{%endif%}"/>
 		
 		<label for="shop">Shop</label>
 		<select id="shop" name="shop">
 			{%for s in shops%}
-			<option value="{{s['id']}}" {%if s['id'] == item['shopid']%}selected{%endif%}>{{s['name']}}</option>
+			<option value="{{s['id']}}" {%if not item['new']%}{%if s['id'] == item['shopid']%}selected{%endif%}{%endif%}>{{s['name']}}</option>
 			{%endfor%}
 		</select>
 
 		<label for="price">Price</label>
-		<input id="price" name="price" type="number" pattern="[0-9]+([\.,][0-9]+)?" step="0.01" value="{{item['price']/100}}"/>
+		<input id="price" name="price" type="number" pattern="[0-9]+([\.,][0-9]+)?" step="0.01" value="{%if not item['new']%}{{item['price']/100}}{%endif%}"/>
 
 
 
-
-
-		<input type="submit" value="edit"/>
+		{%if item['new'] %}
+		<button name="create" value="create" class="btn-secondary">create item</button>
+		{%else%}
+		
+		<button name="edit" value="edit" class="btn-primary">edit item</button>
 		<button name="delete" value="delete" class="btn-danger">delete item</button>
+		{%endif%}
 	</form>
 
 </div>

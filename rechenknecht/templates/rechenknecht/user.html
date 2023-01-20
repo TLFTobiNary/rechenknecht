@@ -1,19 +1,19 @@
 {% extends 'base.html' %}
 
 {% block header %}
-<h1>{% block title %}Edit User{% endblock %}</h1>
+<h1>{% block title %}{%if not user['new']%}Edit User "{{user['username']}}"{%else%}New User{%endif%}{% endblock %}</h1>
 {% endblock %}
 
 {% block content %}
 
 
 <div>
-	<form method="POST" action="{{url_for('rechenknecht.editUser', userid=user['id'])}}"/>
+	<form method="POST" action="{%if user['new']%}{{url_for('rechenknecht.editUser')}}{%else%}{{url_for('rechenknecht.editUser', userid=user['id'])}}{%endif%}"/>
 	<label for="username">Username</label>
 	<input id="username" name="username" type="text" value="{{user['username']}}"/>
 
 	<label for="password">Password</label>
-	<input id="password" name="password" type="password" optional/>
+	<input id="password" name="password" type="password" {%if user['new']%}required{%endif%}/>
 	
 	<label for="privileges">Privileges</label>
 	<input id="privileges" name="privileges" type="number" pattern="[01]" step="1" value="{{user['privileges']}}"/>
@@ -26,8 +26,11 @@
 
 
 
-
+	{%if not user['new']%}
 	<button class="btn-danger">Edit user</button>
+	{%else%}
+	<button class="btn-success">Add user</button>
+	{%endif%}
 	</form>
 
 </div>

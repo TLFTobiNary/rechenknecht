@@ -1,14 +1,14 @@
 {% extends 'base.html' %}
 
 {% block header %}
-<h1>{% block title %}Pool "{{pool['description']}}"{% endblock %}</h1>
+<h1>{% block title %}{%if not pool['new']%}Edit Pool "{{pool['description']}}"{%else%}New Pool{%endif%}{% endblock %}</h1>
 {% endblock %}
 
 {% block content %}
 
 
 <div>
-	<form method="POST" action="{{url_for('rechenknecht.editPool', poolid=pool['id'])}}"/>
+	<form method="POST" action="{%if pool['new']%}{{url_for('rechenknecht.editPool')}}{%else%}{{url_for('rechenknecht.editPool', poolid=pool['id'])}}{%endif%}"/>
 	<label for="name">Pool name</label>
 	<input id="name" name="name" type="text" value="{{pool['description']}}">
 	<fieldset>
@@ -20,7 +20,11 @@
 		{%endfor%}
 		</div>
 	</fieldset>
+	{%if not pool['new']%}
 	<button class="btn-primary">edit pool</button>
+	{%else%}
+	<button class="btn-success">Add pool</button>
+	{%endif%}
 	{%if pool.disabled%}
 	<button class="btn-secondary" name="enable" value="enable">activate pool</button>
 	{%else%}

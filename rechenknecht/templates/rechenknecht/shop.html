@@ -1,17 +1,24 @@
 {% extends 'base.html' %}
 
 {% block header %}
-<h1>{% block title %}Edit shop{% endblock %}</h1>
+<h1>{% block title %}{%if not shop['new']%}Edit Shop "{{shop['name']}}"{%else%}New Shop{%endif%}{% endblock %}</h1>
 {% endblock %}
 
 {% block content %}
 
 
 <div>
-	<form method="POST" action="{{url_for('rechenknecht.editShop', shopid=shop['id'])}}"/>
+	<form method="POST" action="{%if shop['new']%}{{url_for('rechenknecht.editShop')}}{%else%}{{url_for('rechenknecht.editShop', shopid=shop['id'])}}{%endif%}"/>
 	<label for="name">Shop name</label>
 	<input id="name" name="name" type="text" value="{{shop['name']}}">
-	<button class="btn-primary">Edit shop</button>
+
+	{%if not shop['new']%}
+	<button class="btn-primary">edit shop</button>
+	<button name="delete" value="delete" class="btn-danger">delete shop</button>
+	{%else%}
+	<button class="btn-success">Add add</button>
+	{%endif%}
+
 	</form>
 
 </div>
