@@ -13,10 +13,10 @@
 	<input id="name" name="name" type="text" value="{{shop['name']}}">
 
 	{%if not shop['new']%}
-	<button class="btn-primary">edit shop</button>
-	<button name="delete" value="delete" class="btn-danger">delete shop</button>
+	<button class="btn-primary">Safe changes</button>
+	<button name="delete" value="delete" class="btn-danger">Delete shop</button>
 	{%else%}
-	<button class="btn-success">Add add</button>
+	<button class="btn-success">Add shop</button>
 	{%endif%}
 
 	</form>
