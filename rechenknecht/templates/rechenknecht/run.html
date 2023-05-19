@@ -1,6 +1,13 @@
 {% extends 'base.html' %}
 
+
+{% block javascript %}
+
+<script src="{{url_for('static', filename='runUI.js')}}"></script>
+	{%endblock %}
+
 {% block header %}
+
 <h1>{% block title %}Edit run{% endblock %}</h1>
 {% endblock %}
 
@@ -30,7 +37,13 @@
 			<option value="9">9</option>
 			<option value="10">10</option>
 		</select>
-		<label for="item">new purchase</label>
+		<label for="itemsearch">new purchase</label>
+		<input autocomplete="off" name="itemsearch" id="itemsearch" placeholder="search items" onkeyup="refreshResults()"/>
+		
+		<div id="resultList">
+		<a href="{{url_for("rechenknecht.editItem")}}" id="newitem" hidden><button class="btn-success">add new item</button></a>
+		</div>
+			
 		<select id="item" name="item">
 			{% for x in items %}
 				<option value="{{x['id']}}">{{x['description']}} @ {{x['price']/100}}€</option>
@@ -46,7 +59,6 @@
 		<button class="paper-btn btn-primary">add purchase</button>
 		<button class="btn-secondary" name="modify" value="modify item">modify item</button>
 	</form>
-		<a href="{{url_for("rechenknecht.editItem")}}"><button class="btn-success">add new item</button></a>
 
 <div>
 	<table>

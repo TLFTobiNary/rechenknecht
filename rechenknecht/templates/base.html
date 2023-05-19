@@ -2,7 +2,8 @@
 <html{% if g.user['darkmode'] %} class="dark"{%endif%}>
         <head>
 		<title>Rechenknecht - {% block title %}{% endblock %}</title>
-		<link rel="stylesheet" href="{{ url_for('static', filename='paper.min.css') }}">
+		<link rel="stylesheet" href="{{ url_for('static', filename='paper.min.css') }}"/>
+		{% block javascript %} {% endblock %}
         </head>
 	<body{% if g.user['darkmode'] %} style="background-color: #41403e"{%endif%}>
                 <div id="top" class="row site">
