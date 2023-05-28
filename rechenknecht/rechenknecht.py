@@ -194,13 +194,11 @@ def editRun(runid):
     if request.method == 'GET':
         db = get_db()
         purchases = db.execute("select purchases.id as id, purchases.price as price, items.description as itemName, pools.description as poolName from purchases inner join items on purchases.itemid = items.id inner join pools on purchases.poolid = pools.id where runid = ?", (runid,)).fetchall()
-        run = db.execute("select * from runs where id = ?", (runid,)).fetchone()
+        run = db.execute("select runs.id as id, runs.shopid as shopid, runs.date as date, runs.paid as paid, shops.name as name from runs inner join shops on runs.shopid=shops.id where runs.id = ?", (runid,)).fetchone()
         items = db.execute("select * from items where shopid = ? ORDER BY price ASC", (run['shopid'],)).fetchall()
         pools = db.execute("select * from pools where disabled = ?",  (False,)).fetchall()
         
-        creditList = calculate_credit_list()
-
-        return render_template('rechenknecht/run.html', purchases=purchases, items=items, pools=pools, run=run, creditList = creditList)
+        return render_template('rechenknecht/run.html', purchases=purchases, items=items, pools=pools, run=run)
 
     if request.method == 'POST':
         if request.form.get("modify"):

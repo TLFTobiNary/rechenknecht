@@ -25,7 +25,6 @@ function refreshResults() {
 				button.addEventListener('click', function() {
 					selectItem(""+value+"");
 				});
-				console.log("have value "+value);
 				resultList.appendChild(button);
 			}
 		}
@@ -36,7 +35,6 @@ function refreshResults() {
 	}
 }
 function selectItem(itemid) {
-	console.log("have value "+itemid);
 	document.getElementById("item").value=itemid;
 	document.getElementById("itemsearch").value = "";
 	refreshResults();

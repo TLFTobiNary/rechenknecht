@@ -8,19 +8,11 @@
 
 {% block header %}
 
-<h1>{% block title %}Edit run{% endblock %}</h1>
+<h1>{% block title %}Run for {{run['name']}}{% endblock %}</h1>
 {% endblock %}
 
 {% block content %}
 
-<div>
-	<p>This run has created the following debts:</p>
-	
-	{%for credit in creditList.credits %}
-	  <p>{{credit}}</p>
-
-	{%endfor%}
-</div>
 	
 <form method="POST" action="{{url_for('rechenknecht.editRun', runid=run['id'])}}">
 	<div class="form-group">
@@ -41,7 +33,7 @@
 		<input autocomplete="off" name="itemsearch" id="itemsearch" placeholder="search items" onkeyup="refreshResults()"/>
 		
 		<div id="resultList">
-		<a href="{{url_for("rechenknecht.editItem")}}" id="newitem" hidden><button class="btn-success">add new item</button></a>
+		<a href="{{url_for("rechenknecht.editItem")}}" id="newitem" target="_blank" hidden><button type="button" class="btn-success">add new item</button></a>
 		</div>
 			
 		<select id="item" name="item">
